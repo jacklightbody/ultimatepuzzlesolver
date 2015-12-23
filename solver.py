@@ -1,4 +1,5 @@
 import sys
+import copy
 class Piece:
 	'''
 	Key for edges
@@ -62,7 +63,8 @@ class Puzzle:
 			[3,1,-1,-4],
 			[3,3,-1,-2],
 			[4,3,-3,-1],
-			[4,3,-4,-2]]
+			[4,3,-4,-2]
+		]
 		for pieceEdges in pieces:
 			self.pieces.append(Piece(pieceEdges))
 		self.solveInit()
@@ -85,7 +87,6 @@ class Puzzle:
 		if(yloc == self.height):
 			self.solution(board,used)
 			return True
-
 		for piece in self.pieces:
 			if self.isUsed(piece,board,used):
 				continue
@@ -93,22 +94,32 @@ class Puzzle:
 				piece.rotate(i)
 				if yloc == 0 or board[yloc-1][xloc].getEdge('bottom') + piece.getEdge('top') == 0:
 					if xloc == 0 or board[yloc][xloc-1].getEdge('right') + piece.getEdge('left') == 0:
-						board[yloc][xloc] = piece
+						newpiece = copy.deepcopy(piece)
+						board[yloc][xloc] = newpiece
 						newused = used[:]
-						newused.append(piece.getName())
+						newused.append(newpiece.getName())
 						self.solve(xloc+1,yloc,board,newused)
 		return False
 
 	def solution(self, board,used):
-		if board not in self.solutions:
+		format = self.usedFormat(board)
+		if format not in self.solutionNames:
 			self.count += 1
 			print self.count
 			self.prettyPrint(board)
 			self.solutions.append(board)
+			self.solutionNames.append(format)
 
 	def showSolutions(self):
 		for solution in self.solutions:
 			self.prettyPrint(solution)
+
+	def usedFormat(self,board):
+		r = ''
+		for i in range(0,self.height): 
+			for k in range(0,self.width): 
+				r = r + board[i][k].getName()+"r"+str(board[i][k].getRotation())
+		return r
 
 	def prettyPrint(self,board):
 		for i in range(0,self.height): 
@@ -129,8 +140,9 @@ class Puzzle:
 		for piece in self.pieces:
 			for i in range(0,4):
 				piece.rotate(i)
-				board[yloc][xloc] = piece
-				self.solve(xloc+1,yloc,board,[piece.getName()])
+				newpiece = copy.deepcopy(piece)
+				board[yloc][xloc] = newpiece
+				self.solve(xloc+1,yloc,board,[newpiece.getName()])
 
 def main():
 	Puzzle()
